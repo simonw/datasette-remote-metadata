@@ -77,3 +77,26 @@ async def test_headers(httpx_mock):
     requests = httpx_mock.get_requests()
     assert len(requests) == 1
     assert requests[0].headers["authorization"] == "Bearer X"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("already_has_querystring", (True, False))
+async def test_cachebust(httpx_mock, already_has_querystring):
+    url = TEST_URL
+    if already_has_querystring:
+        url += "?foo=bar"
+    httpx_mock.add_response(data=b"title: Testing TTL", method="GET")
+    datasette = Datasette(
+        [],
+        memory=True,
+        metadata={
+            "plugins": {"datasette-remote-metadata": {"url": url, "cachebust": True}}
+        },
+    )
+    await datasette.invoke_startup()
+    requests = httpx_mock.get_requests()
+    url = str(requests[0].url)
+    if already_has_querystring:
+        assert "?foo=bar&0." in url
+    else:
+        assert "?0." in url

@@ -19,8 +19,11 @@ async def update_remote_with_time_limit(datasette, timelimit=0.2):
     cachebust = bool(config.get("cachebust"))
 
     async def update_remote():
+        fetch_url = url
+        if cachebust:
+            fetch_url += "&" if "?" in url else "?"
+            fetch_url += str(random.random())
         async with httpx.AsyncClient() as client:
-            fetch_url = url + (("?" + str(random.random())) if cachebust else "")
             response = await client.get(
                 fetch_url,
                 headers=dict(headers, **{"Cache-Control": "no-cache"}),

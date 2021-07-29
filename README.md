@@ -37,8 +37,9 @@ Available configuration options are as follows:
 - `"url"` - the URL to retrieve remote metadata from. Can link to a JSON or a YAML file.
 - `"ttl"` - integer value in secords: how frequently should the script check for fresh metadata. Defaults to 30 seconds.
 - `"headers"` - a dictionary of additional request headers to send.
+- `"cachebust"` - if true, a random `?0.29508` value will be added to the query string of the remote metadata to bust any intermediary caches.
 
-This example `metadata.json` configuration refreshes every 10 seconds and sends an `Authorization: Bearer xyz` header with the request:
+This example `metadata.json` configuration refreshes every 10 seconds, uses cache busting and sends an `Authorization: Bearer xyz` header with the request:
 
 ```json
 {
@@ -46,6 +47,7 @@ This example `metadata.json` configuration refreshes every 10 seconds and sends 
         "datasette-remote-metadata": {
             "url": "https://example.com/remote-metadata.yml",
             "ttl": 10,
+            "cachebust": true,
             "headers": {
                 "Authorization": "Bearer xyz"
             }
@@ -59,6 +61,7 @@ plugins:
   datasette-remote-metadata:
     url: https://example.com/remote-metadata.yml
     ttl: 10
+    cachebust: true
     headers:
       Authorization: Bearer xyz
 ```
