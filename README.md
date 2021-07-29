@@ -30,6 +30,39 @@ The plugin will fetch the specified metadata  from that URL at startup and combi
 
 It will periodically refresh that metadata - by default every 30 seconds, unless you specify an alternative `"ttl"` value in the plugin configuration.
 
+## Configuration
+
+Available configuration options are as follows:
+
+- `"url"` - the URL to retrieve remote metadata from. Can link to a JSON or a YAML file.
+- `"ttl"` - integer value in secords: how frequently should the script check for fresh metadata. Defaults to 30 seconds.
+- `"headers"` - a dictionary of additional request headers to send.
+
+This example `metadata.json` configuration refreshes every 10 seconds and sends an `Authorization: Bearer xyz` header with the request:
+
+```json
+{
+    "plugins": {
+        "datasette-remote-metadata": {
+            "url": "https://example.com/remote-metadata.yml",
+            "ttl": 10,
+            "headers": {
+                "Authorization": "Bearer xyz"
+            }
+        }
+    }
+}
+```
+This example if you are using `metadata.yaml` for configuration:
+```yaml
+plugins:
+  datasette-remote-metadata:
+    url: https://example.com/remote-metadata.yml
+    ttl: 10
+    headers:
+      Authorization: Bearer xyz
+```
+
 ## Development
 
 To set up this plugin locally, first checkout the code. Then create a new virtual environment:

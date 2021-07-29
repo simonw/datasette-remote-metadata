@@ -53,3 +53,27 @@ async def test_ttl(httpx_mock):
     sleep(1)
     await datasette.client.get("/")
     assert len(httpx_mock.get_requests()) == 2
+
+
+@pytest.mark.asyncio
+async def test_headers(httpx_mock):
+    httpx_mock.add_response(
+        url=TEST_URL,
+        data=b"title: Testing TTL",
+    )
+    datasette = Datasette(
+        [],
+        memory=True,
+        metadata={
+            "plugins": {
+                "datasette-remote-metadata": {
+                    "url": TEST_URL,
+                    "headers": {"Authorization": "Bearer X"},
+                }
+            }
+        },
+    )
+    await datasette.invoke_startup()
+    requests = httpx_mock.get_requests()
+    assert len(requests) == 1
+    assert requests[0].headers["authorization"] == "Bearer X"
