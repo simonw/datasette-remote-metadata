@@ -33,13 +33,13 @@ async def update_remote_with_time_limit(datasette, timelimit=None):
         datasette._remote_metadata = metadata
         datasette._remote_metadata_last_updated = time.monotonic()
 
-    try:
-        if timelimit is not None:
+    if timelimit is not None:
+        try:
             await asyncio.wait_for(asyncio.shield(update_remote()), timeout=timelimit)
-        else:
-            await update_remote()
-    except asyncio.exceptions.TimeoutError:
-        pass
+        except asyncio.exceptions.TimeoutError:
+            pass
+    else:
+        await update_remote()
 
 
 @hookimpl
