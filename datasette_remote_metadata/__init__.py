@@ -7,7 +7,7 @@ from functools import wraps
 import random
 
 
-async def update_remote_with_time_limit(datasette, timelimit=0.2):
+async def update_remote_with_time_limit(datasette, timelimit=None):
     # Update datasette._remote_metadata from URL - returns when done OR
     # when it hits time limit. If the time limit is hit it will still
     # perform the update once the request has completed
@@ -28,12 +28,16 @@ async def update_remote_with_time_limit(datasette, timelimit=0.2):
                 fetch_url,
                 headers=dict(headers, **{"Cache-Control": "no-cache"}),
             )
+            response.raise_for_status()
         metadata = parse_metadata(response.content)
         datasette._remote_metadata = metadata
         datasette._remote_metadata_last_updated = time.monotonic()
 
     try:
-        await asyncio.wait_for(asyncio.shield(update_remote()), timeout=timelimit)
+        if timelimit is not None:
+            await asyncio.wait_for(asyncio.shield(update_remote()), timeout=timelimit)
+        else:
+            await update_remote()
     except asyncio.exceptions.TimeoutError:
         pass
 
@@ -41,7 +45,7 @@ async def update_remote_with_time_limit(datasette, timelimit=0.2):
 @hookimpl
 def startup(datasette):
     async def inner():
-        await update_remote_with_time_limit(datasette, timelimit=0.2)
+        await update_remote_with_time_limit(datasette)
 
     return inner
 

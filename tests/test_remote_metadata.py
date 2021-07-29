@@ -1,5 +1,6 @@
 from time import sleep
 from datasette.app import Datasette
+import httpx
 import pytest
 
 TEST_URL = "https://www.example.com/metadata.yml"
@@ -100,3 +101,15 @@ async def test_cachebust(httpx_mock, already_has_querystring):
         assert "?foo=bar&0." in url
     else:
         assert "?0." in url
+
+
+@pytest.mark.asyncio
+async def test_fails_if_error_on_startup(httpx_mock):
+    httpx_mock.add_response(status_code=404)
+    datasette = Datasette(
+        [],
+        memory=True,
+        metadata={"plugins": {"datasette-remote-metadata": {"url": TEST_URL}}},
+    )
+    with pytest.raises(httpx.HTTPStatusError):
+        await datasette.invoke_startup()
