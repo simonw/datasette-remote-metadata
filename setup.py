@@ -1,7 +1,7 @@
 from setuptools import setup
 import os
 
-VERSION = "0.1"
+VERSION = "0.2a0"
 
 
 def get_long_description():
@@ -28,7 +28,7 @@ setup(
     version=VERSION,
     packages=["datasette_remote_metadata"],
     entry_points={"datasette": ["remote_metadata = datasette_remote_metadata"]},
-    install_requires=["datasette"],
+    install_requires=["datasette>=1.0a14"],
     extras_require={"test": ["pytest", "pytest-asyncio", "pytest-httpx"]},
     tests_require=["datasette-remote-metadata[test]"],
     python_requires=">=3.6",
