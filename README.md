@@ -14,7 +14,6 @@ Install this plugin in the same environment as Datasette.
 ```bash
 datasette install datasette-remote-metadata
 ```
-The alpha version of this plugin requires [Datasette 1.0a14](https://docs.datasette.io/en/1.0a14/changelog.html#a14-2024-08-05) or higher.
 
 ## Usage
 
