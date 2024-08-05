@@ -15,7 +15,7 @@ def non_mocked_hosts():
 async def test_remote_metadata(httpx_mock):
     httpx_mock.add_response(
         url=TEST_URL,
-        data=b"title: This is the remote metadata title",
+        text="title: This is the remote metadata title",
     )
     datasette = Datasette(
         [],
@@ -31,7 +31,7 @@ async def test_remote_metadata(httpx_mock):
 async def test_ttl(httpx_mock):
     httpx_mock.add_response(
         url=TEST_URL,
-        data=b"title: Testing TTL",
+        text="title: Testing TTL",
     )
     datasette = Datasette(
         [],
@@ -60,7 +60,7 @@ async def test_ttl(httpx_mock):
 async def test_headers(httpx_mock):
     httpx_mock.add_response(
         url=TEST_URL,
-        data=b"title: Testing TTL",
+        text="title: Testing TTL",
     )
     datasette = Datasette(
         [],
@@ -86,7 +86,7 @@ async def test_cachebust(httpx_mock, already_has_querystring):
     url = TEST_URL
     if already_has_querystring:
         url += "?foo=bar"
-    httpx_mock.add_response(data=b"title: Testing TTL", method="GET")
+    httpx_mock.add_response(text="title: Testing TTL", method="GET")
     datasette = Datasette(
         [],
         memory=True,
