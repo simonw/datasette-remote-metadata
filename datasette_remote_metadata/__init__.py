@@ -30,7 +30,7 @@ async def update_remote_with_time_limit(datasette, timelimit=None):
             )
             response.raise_for_status()
         metadata = parse_metadata(response.content)
-        datasette._remote_metadata = metadata
+        await apply_metadata(datasette, metadata)
         datasette._remote_metadata_last_updated = time.monotonic()
 
     if timelimit is not None:
@@ -45,14 +45,10 @@ async def update_remote_with_time_limit(datasette, timelimit=None):
 @hookimpl
 def startup(datasette):
     async def inner():
+        await datasette.refresh_schemas()
         await update_remote_with_time_limit(datasette)
 
     return inner
-
-
-@hookimpl
-def get_metadata(datasette):
-    return getattr(datasette, "_remote_metadata", None) or {}
 
 
 @hookimpl
@@ -72,3 +68,31 @@ def asgi_wrapper(datasette):
         return add_refresh
 
     return wrap_with_refresh
+
+
+# Imitating https://github.com/simonw/datasette/blob/f6bd2bf8/datasette/app.py#L446-L472
+async def apply_metadata(datasette, metadata_dict):
+    for key in metadata_dict or {}:
+        if key == "databases":
+            continue
+        await datasette.set_instance_metadata(key, metadata_dict[key])
+
+    # database-level
+    for dbname, db in metadata_dict.get("databases", {}).items():
+        for key, value in db.items():
+            if key == "tables":
+                continue
+            await datasette.set_database_metadata(dbname, key, value)
+
+        # table-level
+        for tablename, table in db.get("tables", {}).items():
+            for key, value in table.items():
+                if key == "columns":
+                    continue
+                await datasette.set_resource_metadata(dbname, tablename, key, value)
+
+            # column-level
+            for columnname, column_description in table.get("columns", {}).items():
+                await datasette.set_column_metadata(
+                    dbname, tablename, columnname, "description", column_description
+                )

@@ -22,6 +22,7 @@ async def test_remote_metadata(httpx_mock):
         memory=True,
         metadata={"plugins": {"datasette-remote-metadata": {"url": TEST_URL}}},
     )
+    await datasette.invoke_startup()
     response = await datasette.client.get("/")
     assert response.status_code == 200
     assert ">This is the remote metadata title<" in response.text
