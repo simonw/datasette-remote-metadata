@@ -1,0 +1,32 @@
+[project]
+name = "datasette-remote-metadata"
+version = "0.1"
+description = "Periodically refresh Datasette metadata from a remote URL"
+readme = "README.md"
+authors = [{name = "Simon Willison"}]
+license = "Apache-2.0"
+requires-python = ">=3.6"
+dependencies = ["datasette"]
+
+[project.urls]
+Homepage = "https://github.com/simonw/datasette-remote-metadata"
+Issues = "https://github.com/simonw/datasette-remote-metadata/issues"
+CI = "https://github.com/simonw/datasette-remote-metadata/actions"
+Changelog = "https://github.com/simonw/datasette-remote-metadata/releases"
+
+[project.optional-dependencies]
+test = ["pytest", "pytest-asyncio", "pytest-httpx"]
+
+[project.entry-points.datasette]
+remote_metadata = "datasette_remote_metadata"
+
+[dependency-groups]
+dev = ["pytest", "pytest-asyncio", "pytest-httpx"]
+
+[build-system]
+requires = ["uv_build>=0.11.0,<0.12.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-root = ""
+source-include = ["tests/**"]
