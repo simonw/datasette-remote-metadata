@@ -1,7 +1,7 @@
 import asyncio
 from datasette import hookimpl
 from datasette.utils import parse_metadata
-import httpx
+import httpx2
 import time
 from functools import wraps
 import random
@@ -23,7 +23,7 @@ async def update_remote_with_time_limit(datasette, timelimit=None):
         if cachebust:
             fetch_url += "&" if "?" in url else "?"
             fetch_url += str(random.random())
-        async with httpx.AsyncClient() as client:
+        async with httpx2.AsyncClient() as client:
             response = await client.get(
                 fetch_url,
                 headers=dict(headers, **{"Cache-Control": "no-cache"}),

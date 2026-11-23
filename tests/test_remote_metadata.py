@@ -1,22 +1,14 @@
 from time import sleep
 from datasette.app import Datasette
-import httpx
+import httpx2
 import pytest
 
 TEST_URL = "https://www.example.com/metadata.yml"
 
 
-@pytest.fixture
-def non_mocked_hosts():
-    return ["localhost"]
-
-
 @pytest.mark.asyncio
-async def test_remote_metadata(httpx_mock):
-    httpx_mock.add_response(
-        url=TEST_URL,
-        text="title: This is the remote metadata title",
-    )
+async def test_remote_metadata(httpx2_mock):
+    httpx2_mock.get(TEST_URL).respond(text="title: This is the remote metadata title")
     datasette = Datasette(
         [],
         memory=True,
@@ -28,11 +20,8 @@ async def test_remote_metadata(httpx_mock):
 
 
 @pytest.mark.asyncio
-async def test_ttl(httpx_mock):
-    httpx_mock.add_response(
-        url=TEST_URL,
-        text="title: Testing TTL",
-    )
+async def test_ttl(httpx2_mock):
+    route = httpx2_mock.get(TEST_URL).respond(text="title: Testing TTL")
     datasette = Datasette(
         [],
         memory=True,
@@ -49,19 +38,16 @@ async def test_ttl(httpx_mock):
     # More requests shouldn't trigger a metadata fetch
     for _ in range(3):
         await datasette.client.get("/")
-    assert len(httpx_mock.get_requests()) == 1
+    assert route.call_count == 1
     # Now wait a second and try again
     sleep(1)
     await datasette.client.get("/")
-    assert len(httpx_mock.get_requests()) == 2
+    assert route.call_count == 2
 
 
 @pytest.mark.asyncio
-async def test_headers(httpx_mock):
-    httpx_mock.add_response(
-        url=TEST_URL,
-        text="title: Testing TTL",
-    )
+async def test_headers(httpx2_mock):
+    route = httpx2_mock.get(TEST_URL).respond(text="title: Testing TTL")
     datasette = Datasette(
         [],
         memory=True,
@@ -75,18 +61,17 @@ async def test_headers(httpx_mock):
         },
     )
     await datasette.invoke_startup()
-    requests = httpx_mock.get_requests()
-    assert len(requests) == 1
-    assert requests[0].headers["authorization"] == "Bearer X"
+    assert route.call_count == 1
+    assert route.calls.last.request.headers["authorization"] == "Bearer X"
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("already_has_querystring", (True, False))
-async def test_cachebust(httpx_mock, already_has_querystring):
+async def test_cachebust(httpx2_mock, already_has_querystring):
     url = TEST_URL
     if already_has_querystring:
         url += "?foo=bar"
-    httpx_mock.add_response(text="title: Testing TTL", method="GET")
+    route = httpx2_mock.get().respond(text="title: Testing TTL")
     datasette = Datasette(
         [],
         memory=True,
@@ -95,8 +80,7 @@ async def test_cachebust(httpx_mock, already_has_querystring):
         },
     )
     await datasette.invoke_startup()
-    requests = httpx_mock.get_requests()
-    url = str(requests[0].url)
+    url = str(route.calls[0].request.url)
     if already_has_querystring:
         assert "?foo=bar&0." in url
     else:
@@ -104,12 +88,12 @@ async def test_cachebust(httpx_mock, already_has_querystring):
 
 
 @pytest.mark.asyncio
-async def test_fails_if_error_on_startup(httpx_mock):
-    httpx_mock.add_response(status_code=404)
+async def test_fails_if_error_on_startup(httpx2_mock):
+    httpx2_mock.get(TEST_URL).respond(status_code=404)
     datasette = Datasette(
         [],
         memory=True,
         metadata={"plugins": {"datasette-remote-metadata": {"url": TEST_URL}}},
     )
-    with pytest.raises(httpx.HTTPStatusError):
+    with pytest.raises(httpx2.HTTPStatusError):
         await datasette.invoke_startup()
