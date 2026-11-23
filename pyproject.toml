@@ -1,6 +1,6 @@
 [project]
 name = "datasette-remote-metadata"
-version = "0.1"
+version = "0.2"
 description = "Periodically refresh Datasette metadata from a remote URL"
 readme = "README.md"
 authors = [{name = "Simon Willison"}]
